@@ -14,7 +14,7 @@
   <br/>
   <br/>
   <a href="https://skillicons.dev">
-    <img src="https://skillicons.dev/icons?i=ts,nodejs,express,mongodb,postgres,mysql,docker,kubernetes,rabbitmq,kafka,jest,vitest&theme=dark&perline=6" alt="Tech Stack" />
+    <img src="https://skillicons.dev/icons?i=ts,nodejs,express,mongodb,postgres,mysql,docker,kubernetes,rabbitmq,kafka,jest,vitest,git,github&theme=dark&perline=7" alt="Tech Stack" />
   </a>
 </div>
 
