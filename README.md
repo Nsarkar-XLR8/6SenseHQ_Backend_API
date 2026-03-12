@@ -11,6 +11,11 @@
   <a href="https://git.io/typing-svg">
     <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=20&duration=4000&pause=1000&color=2563EB&center=true&vCenter=true&width=500&lines=TypeScript+%2B+Express.js;MongoDB,+Postgres,+MySQL;Swagger+OpenAPI+Docs;RabbitMQ+%2B+Kafka+Queuing;Docker+%2B+Kubernetes+Ready" alt="Typing SVG" />
   </a>
+  <br/>
+  <br/>
+  <a href="https://skillicons.dev">
+    <img src="https://skillicons.dev/icons?i=ts,nodejs,express,mongodb,postgres,mysql,docker,kubernetes,rabbitmq,kafka,jest,vitest&theme=dark&perline=6" alt="Tech Stack" />
+  </a>
 </div>
 
 <div align="center">
