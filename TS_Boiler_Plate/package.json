@@ -24,7 +24,7 @@
     "check:all": "npm run typecheck && npm run lint && npm run test && npm run check:contracts && npm run check:security",
     "clean": "rimraf dist",
     "ci": "npm run audit:ci && npm run typecheck && npm run lint && npm run test",
-    "audit:ci": "npm audit --audit-level=critical",
+    "audit:ci": "npm audit --audit-level=high",
     "migrate:up": "npx migrate-mongo up -f migrate-mongo-config.ts",
     "migrate:down": "npx migrate-mongo down -f migrate-mongo-config.ts",
     "migrate:create": "npx migrate-mongo create -f migrate-mongo-config.ts",
@@ -129,5 +129,11 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.54.0",
     "vitest": "^4.0.18"
+  },
+  "overrides": {
+    "@stoplight/spectral-cli": {
+      "minimatch": "^5.1.0",
+      "rollup": "^2.80.0"
+    }
   }
 }

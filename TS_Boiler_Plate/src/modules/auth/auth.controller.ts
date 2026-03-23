@@ -191,10 +191,10 @@ const refreshToken = catchAsync(async (req, res) => {
 // ── New: Logout ──────────────────────────────────────────────────────
 
 const logoutUser = catchAsync(async (req, res) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const userId = (req.user as any)!.userId;
-    const token =
-        (req.cookies as Record<string, string> | undefined)?.refreshToken ??
-        req.body?.refreshToken;
+    const cookies = req.cookies as Record<string, string> | undefined;
+    const token = cookies?.refreshToken ?? req.body?.refreshToken;
 
     await AuthService.logoutUser(userId, token);
 

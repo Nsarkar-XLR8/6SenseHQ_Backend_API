@@ -25,7 +25,11 @@ function transportOrder(kind: BusEvent["kind"]) {
 
 async function markIdempotent(idempotencyKey?: string) {
     if (!idempotencyKey) return true;
-    return setIfNotExists(`idemp:bus:${idempotencyKey}`, "1", DEFAULT_IDEMPOTENCY_TTL_SECONDS);
+    try {
+        return await setIfNotExists(`idemp:bus:${idempotencyKey}`, "1", DEFAULT_IDEMPOTENCY_TTL_SECONDS);
+    } catch {
+        return true; // Fail open for the message bus to preserve graceful degradation
+    }
 }
 
 class MessageBus {

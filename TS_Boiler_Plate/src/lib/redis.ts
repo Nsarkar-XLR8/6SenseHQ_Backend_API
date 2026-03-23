@@ -52,7 +52,9 @@ export function getRedis(): Redis | null {
 }
 
 export async function setIfNotExists(key: string, value: string, expiresInSeconds: number): Promise<boolean> {
-    if (!redis) return true;
+    if (!redis) {
+        throw new Error("Redis connection is required for idempotency checks");
+    }
     const result = await redis.set(key, value, "EX", expiresInSeconds, "NX");
     return result === "OK";
 }

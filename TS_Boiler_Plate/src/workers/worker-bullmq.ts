@@ -13,6 +13,7 @@ await connectRedis(config.redis.url);
 initMessaging();
 logCapabilityReport();
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const processor = async (payload: any) => {
     const eventName = String(payload.__metaEventName ?? payload.eventName ?? payload.name ?? "unknown");
     await processPaymentJob(eventName, payload);
