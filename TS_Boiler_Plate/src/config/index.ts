@@ -27,9 +27,9 @@ const envSchema = z.object({
     RESET_PASSWORD_TOKEN_SECRET: z.string().optional(),
     RESET_EXPIRES_IN: z.string().optional(),
 
-    CLOUDINARY_CLOUD_NAME: z.string().min(1),
-    CLOUDINARY_API_KEY: z.string().min(1),
-    CLOUDINARY_API_SECRET: z.string().min(1),
+    CLOUDINARY_CLOUD_NAME: z.string().optional(),
+    CLOUDINARY_API_KEY: z.string().optional(),
+    CLOUDINARY_API_SECRET: z.string().optional(),
 
     AES_KEY: z.string().optional(),
     AES_IV: z.string().optional(),
@@ -68,7 +68,8 @@ const envSchema = z.object({
     BULLMQ_ENABLED: z.enum(["true", "false"]).default("true"),
     KAFKA_ENABLED: z.enum(["true", "false"]).default("true"),
     RABBITMQ_ENABLED: z.enum(["true", "false"]).default("true"),
-    STRIPE_ENABLED: z.enum(["true", "false"]).default("false")
+    STRIPE_ENABLED: z.enum(["true", "false"]).default("false"),
+    CLOUDINARY_ENABLED: z.enum(["true", "false"]).default("false")
 });
 
 const env = envSchema.parse(process.env);
@@ -161,11 +162,12 @@ const config = {
         bullmqEnabled: env.BULLMQ_ENABLED === "true",
         kafkaEnabled: env.KAFKA_ENABLED === "true",
         rabbitmqEnabled: env.RABBITMQ_ENABLED === "true",
-        stripeEnabled: env.STRIPE_ENABLED === "true"
+        stripeEnabled: env.STRIPE_ENABLED === "true",
+        cloudinaryEnabled: env.CLOUDINARY_ENABLED === "true"
     }
 };
 
-function assertRequiredWhenEnabled() {
+function assertDatabaseConfig() {
     if (config.dbType === "mongodb" && !config.mongodbUrl) {
         throw new Error("MONGODB_URL is required when DB_TYPE=mongodb");
     }
@@ -175,7 +177,9 @@ function assertRequiredWhenEnabled() {
     if (config.dbType === "mysql" && !config.mysqlUrl) {
         throw new Error("MYSQL_URL is required when DB_TYPE=mysql");
     }
+}
 
+function assertStripeConfig() {
     if (config.features.stripeEnabled) {
         if (!config.stripe.stripeSecretKey) {
             throw new Error("STRIPE_SECRET_KEY is required when STRIPE_ENABLED=true");
@@ -184,6 +188,26 @@ function assertRequiredWhenEnabled() {
             throw new Error("STRIPE_WEBHOOK_ADMIN_SECRET is required when STRIPE_ENABLED=true");
         }
     }
+}
+
+function assertCloudinaryConfig() {
+    if (config.features.cloudinaryEnabled) {
+        if (!config.cloudinary.cloud_name) {
+            throw new Error("CLOUDINARY_CLOUD_NAME is required when CLOUDINARY_ENABLED=true");
+        }
+        if (!config.cloudinary.api_key) {
+            throw new Error("CLOUDINARY_API_KEY is required when CLOUDINARY_ENABLED=true");
+        }
+        if (!config.cloudinary.api_secret) {
+            throw new Error("CLOUDINARY_API_SECRET is required when CLOUDINARY_ENABLED=true");
+        }
+    }
+}
+
+function assertRequiredWhenEnabled() {
+    assertDatabaseConfig();
+    assertStripeConfig();
+    assertCloudinaryConfig();
 }
 
 assertRequiredWhenEnabled();

@@ -3,12 +3,13 @@ import { StatusCodes } from "http-status-codes";
 import { isDbReady } from "../database/index.js";
 import { isRedisReady } from "../lib/redis.js";
 import { messageBus } from "../messaging/messageBus.js";
+import type { CapabilityReport, PipelineReadiness } from "../interfaces/system.interface.js";
 import { sendResponse } from "../utils/sendResponse.js";
 
 export const systemRouter = Router();
 
 systemRouter.get("/capabilities", (req, res) => {
-    const data = messageBus.health();
+    const data: CapabilityReport = messageBus.health();
     return sendResponse(res, {
         statusCode: StatusCodes.OK,
         message: "Capability report",
@@ -19,7 +20,7 @@ systemRouter.get("/capabilities", (req, res) => {
 
 systemRouter.get("/pipeline-ready", (req, res) => {
     const bus = messageBus.getCapabilities();
-    const data = {
+    const data: PipelineReadiness = {
         db: isDbReady(),
         redis: isRedisReady(),
         messaging: bus,

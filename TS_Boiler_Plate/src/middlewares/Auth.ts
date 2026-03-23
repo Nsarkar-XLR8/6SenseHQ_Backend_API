@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { StatusCodes } from "http-status-codes";
 
 import AppError from "../errors/AppError.js";
-import { isUserRole, type UserRole } from "../constant/role.constant.js";
+import { isUserRole, normalizeUserRole, type UserRole } from "../constant/role.constant.js";
 import { canAccess } from "../auth/policy.js";
 
 type JwtClaims = jwt.JwtPayload & {
@@ -40,14 +40,15 @@ function extractToken(req: Request): string | undefined {
 function verifyAccessToken(token: string): { userId: string; role: UserRole; iat?: number | undefined; exp?: number | undefined } {
     try {
         const { userId, role, iat, exp } = jwt.verify(token, getJwtSecret()) as JwtClaims;
+        const normalizedRole = normalizeUserRole(role);
 
-        if (!userId || !isUserRole(role)) {
+        if (!userId || normalizedRole === undefined || !isUserRole(normalizedRole)) {
             throw AppError.of(StatusCodes.UNAUTHORIZED, "Invalid token", [
                 { path: "authorization", message: "Missing/invalid userId or role in token" }
             ]);
         }
 
-        return { userId, role, iat, exp };
+        return { userId, role: normalizedRole, iat, exp };
     } catch (err: unknown) {
         const anyErr = err as { name?: string };
 

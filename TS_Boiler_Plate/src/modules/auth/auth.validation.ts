@@ -4,38 +4,38 @@ const registerSchema = z.object({
     body: z.object({
         firstName: z.string().min(2).max(50),
         lastName: z.string().min(2).max(50),
-        email: z.string().email(),
+        email: z.email(),
         password: z.string().min(8, "Password must be at least 8 characters"),
-        avatar: z.string().url().optional(),
+        avatar: z.url().optional(),
     }).strict(),
 });
 
 const loginSchema = z.object({
     body: z.object({
-        email: z.string().email("Invalid email format"),
+        email: z.email("Invalid email format"),
         password: z.string().min(1, "Password is required"),
     }).strict(),
 });
 
 const verifyEmailSchema = z.object({
     body: z.object({
-        email: z.string().email(),
+        email: z.email(),
         otp: z.string().length(6, "OTP must be exactly 6 digits"),
     }).strict(),
 });
 
 
 const forgotPasswordSchema = z.object({
-    body: z.object({ email: z.string().email() }).strict(),
+    body: z.object({ email: z.email() }).strict(),
 })
 
 const resendOtpSchema = z.object({
-    body: z.object({ email: z.string().email() }).strict(),
+    body: z.object({ email: z.email() }).strict(),
 })
 
 const verifyOtpSchema = z.object({
     body: z.object({
-        email: z.string().email(),
+        email: z.email(),
         otp: z.string().length(6)
     }).strict(),
 })
