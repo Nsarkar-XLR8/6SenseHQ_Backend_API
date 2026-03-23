@@ -68,6 +68,7 @@ export async function publishEvent(
         topic,
         messages: [
             {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 key: message.key as any,
                 value: JSON.stringify(message.value),
             },

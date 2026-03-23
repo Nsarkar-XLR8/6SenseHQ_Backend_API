@@ -26,6 +26,7 @@ export function createRedisStore(prefix = "rl:"): Store {
     return new RedisStore({
         // Use the `ioredis` sendCommand adapter
         sendCommand: (...args: string[]) =>
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             redis.call(args[0]!, ...args.slice(1)) as Promise<any>,
         prefix,
     });

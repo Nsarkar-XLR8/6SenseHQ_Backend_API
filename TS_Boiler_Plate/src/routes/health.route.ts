@@ -9,9 +9,14 @@ export const healthRouter = Router();
 
 /**
  * @openapi
+ * tags:
+ *   - name: System
+ *     description: System health and operational endpoints
  * /api/v1/health:
  *   get:
  *     summary: Health check
+ *     description: Retrieves the current system health and uptime.
+ *     operationId: getSystemHealth
  *     tags:
  *       - System
  *     responses:

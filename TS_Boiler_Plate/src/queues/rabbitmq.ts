@@ -1,7 +1,9 @@
 import amqp from "amqplib";
 import { logger } from "../config/logger.js";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let connection: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let channel: any = null;
 
 /**
@@ -17,6 +19,7 @@ export async function connectRabbitMQ(url?: string): Promise<void> {
         connection = await amqp.connect(url);
         channel = await connection.createChannel();
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         connection.on("error", (err: any) => {
             logger.error({ err }, "RabbitMQ connection error");
         });
@@ -85,6 +88,7 @@ export async function consumeFromQueue(
     }
 
     await channel.assertQueue(queue, { durable: true });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await channel.consume(queue, async (msg: any) => {
         if (!msg) return;
 

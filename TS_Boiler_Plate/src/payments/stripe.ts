@@ -22,6 +22,7 @@ export function getStripe(): Stripe | null {
         return null;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     stripe = new Stripe(key, { apiVersion: "2025-02-24.acacia" as any });
     return stripe;
 }

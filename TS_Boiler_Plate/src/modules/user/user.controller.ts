@@ -9,6 +9,7 @@ import AppError from "../../errors/AppError.js";
 const getMyProfile = catchAsync(async (req, res) => {
     // 1. Extract the ID based on your ACTUAL token structure
     // Since your error says the type has 'userId', use that.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { userId } = (req.user as any) || {};
 
     if (!userId) {
@@ -28,6 +29,7 @@ const getMyProfile = catchAsync(async (req, res) => {
 const updateMyProfile = catchAsync(async (req, res) => {
     // 1. Extract the ID based on your ACTUAL token structure
     // Since your error says the type has 'userId', use that.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { userId } = (req.user as any) || {};
 
     if (!userId) {

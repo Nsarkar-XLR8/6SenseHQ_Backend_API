@@ -9,7 +9,11 @@ export const openapiSpec = swaggerJSDoc({
         info: {
             title: process.env.APP_NAME ?? "TS Boilerplate API",
             version: process.env.APP_VERSION ?? "1.0.0",
-            description: "API documentation"
+            description: "API documentation",
+            contact: {
+                name: "API Support",
+                email: "support@example.com"
+            }
         },
         servers: [
             {
