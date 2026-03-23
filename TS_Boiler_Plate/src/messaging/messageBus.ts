@@ -37,6 +37,65 @@ class MessageBus {
         };
     }
 
+    private async publishToBullMQ(event: BusEvent, options?: PublishOptions): Promise<boolean> {
+        if (!config.features.bullmqEnabled || !isBullMQReady()) return false;
+        
+        const delayConfig = options?.delayMs === undefined ? {} : { delay: options.delayMs };
+        const ok = await enqueueJob(
+            event.kind === "job" ? event.name : "events",
+            event.name,
+            {
+                ...event.payload,
+                eventName: event.name,
+                __meta: { requestId: event.requestId, idempotencyKey: event.idempotencyKey },
+            },
+            {
+                ...delayConfig,
+                attempts: options?.retries ?? 3,
+                removeOnComplete: 1000,
+                removeOnFail: 5000,
+            }
+        );
+        if (ok) {
+            observeBusPublish("bullmq", event.name, true);
+            return true;
+        }
+        return false;
+    }
+
+    private async publishToKafka(event: BusEvent): Promise<boolean> {
+        if (!config.features.kafkaEnabled || !isKafkaReady()) return false;
+        
+        const messageKey = event.idempotencyKey ?? event.requestId;
+        const keyConfig = messageKey === undefined ? {} : { key: messageKey };
+        
+        await publishEvent(event.name, {
+            ...keyConfig,
+            value: {
+                ...event.payload,
+                eventName: event.name,
+                requestId: event.requestId,
+            },
+        });
+        observeBusPublish("kafka", event.name, true);
+        return true;
+    }
+
+    private async publishToRabbitMQ(event: BusEvent): Promise<boolean> {
+        if (!config.features.rabbitmqEnabled || !isRabbitReady()) return false;
+
+        const sent = await publishToQueue(event.name, {
+            ...event.payload,
+            eventName: event.name,
+            requestId: event.requestId,
+        });
+        if (sent) {
+            observeBusPublish("rabbitmq", event.name, true);
+            return true;
+        }
+        return false;
+    }
+
     async publish(event: BusEvent, options?: PublishOptions): Promise<boolean> {
         if (!(await markIdempotent(event.idempotencyKey))) {
             logger.info({ event: event.name, idempotencyKey: event.idempotencyKey }, "Duplicate event skipped");
@@ -47,54 +106,9 @@ class MessageBus {
         const candidates = preferred ? [preferred] : transportOrder(event.kind);
 
         for (const transport of candidates) {
-            if (transport === "bullmq" && config.features.bullmqEnabled && isBullMQReady()) {
-                const ok = await enqueueJob(
-                    event.kind === "job" ? event.name : "events",
-                    event.name,
-                    {
-                        ...event.payload,
-                        eventName: event.name,
-                        __meta: { requestId: event.requestId, idempotencyKey: event.idempotencyKey },
-                    },
-                    {
-                        ...(options?.delayMs === undefined ? {} : { delay: options.delayMs }),
-                        attempts: options?.retries ?? 3,
-                        removeOnComplete: 1000,
-                        removeOnFail: 5000,
-                    }
-                );
-                if (ok) {
-                    observeBusPublish("bullmq", event.name, true);
-                    return true;
-                }
-            }
-
-            if (transport === "kafka" && config.features.kafkaEnabled && isKafkaReady()) {
-                await publishEvent(event.name, {
-                    ...((event.idempotencyKey ?? event.requestId) === undefined
-                        ? {}
-                        : { key: event.idempotencyKey ?? event.requestId }),
-                    value: {
-                        ...event.payload,
-                        eventName: event.name,
-                        requestId: event.requestId,
-                    },
-                });
-                observeBusPublish("kafka", event.name, true);
-                return true;
-            }
-
-            if (transport === "rabbitmq" && config.features.rabbitmqEnabled && isRabbitReady()) {
-                const sent = await publishToQueue(event.name, {
-                    ...event.payload,
-                    eventName: event.name,
-                    requestId: event.requestId,
-                });
-                if (sent) {
-                    observeBusPublish("rabbitmq", event.name, true);
-                    return true;
-                }
-            }
+            if (transport === "bullmq" && await this.publishToBullMQ(event, options)) return true;
+            if (transport === "kafka" && await this.publishToKafka(event)) return true;
+            if (transport === "rabbitmq" && await this.publishToRabbitMQ(event)) return true;
         }
 
         observeBusPublish(preferred ?? "none", event.name, false);
@@ -120,7 +134,7 @@ class MessageBus {
         if ((!preferred || preferred === "bullmq") && config.features.bullmqEnabled && isBullMQReady()) {
             registerProcessor(
                 topic,
-                async (job) => wrappedHandler((job.data ?? {}) as Record<string, unknown>),
+                async (job) => wrappedHandler(job.data ?? {}),
                 { concurrency: options?.concurrency ?? 5 }
             );
             return;
