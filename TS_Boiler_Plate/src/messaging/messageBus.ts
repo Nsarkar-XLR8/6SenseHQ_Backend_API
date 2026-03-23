@@ -42,7 +42,7 @@ class MessageBus {
         
         const delayConfig = options?.delayMs === undefined ? {} : { delay: options.delayMs };
         const ok = await enqueueJob(
-            event.kind === "job" ? event.name : "events",
+            event.kind === "job" ? "jobs" : "events",
             event.name,
             {
                 ...event.payload,

@@ -5,7 +5,7 @@ import type Stripe from "stripe";
 type StripeEventHandler = (event: Stripe.Event) => Promise<void>;
 
 async function enqueueWorkflow(event: Stripe.Event, jobName: string) {
-    await messageBus.publish({
+    const published = await messageBus.publish({
         name: jobName,
         kind: "job",
         idempotencyKey: event.id,
@@ -16,6 +16,10 @@ async function enqueueWorkflow(event: Stripe.Event, jobName: string) {
             occurredAt: event.created,
         },
     });
+
+    if (!published) {
+        throw new Error(`Failed to safely enqueue Stripe event: ${jobName}`);
+    }
 }
 
 const handlers: Record<string, StripeEventHandler> = {

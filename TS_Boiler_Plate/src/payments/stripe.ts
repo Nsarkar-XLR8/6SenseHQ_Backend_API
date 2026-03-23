@@ -27,4 +27,4 @@ export function getStripe(): Stripe | null {
     return stripe;
 }
 
-export { Stripe };
+export { default as Stripe } from "stripe";

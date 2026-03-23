@@ -13,14 +13,13 @@ await connectRedis(config.redis.url);
 initMessaging();
 logCapabilityReport();
 
-await messageBus.subscribe(
-    "events",
-    async (payload) => {
-        const eventName = String(payload.__metaEventName ?? payload.eventName ?? payload.name ?? "unknown");
-        await processPaymentJob(eventName, payload);
-    },
-    { transport: "bullmq", concurrency: 10 }
-);
+const processor = async (payload: any) => {
+    const eventName = String(payload.__metaEventName ?? payload.eventName ?? payload.name ?? "unknown");
+    await processPaymentJob(eventName, payload);
+};
+
+await messageBus.subscribe("events", processor, { transport: "bullmq", concurrency: 10 });
+await messageBus.subscribe("jobs", processor, { transport: "bullmq", concurrency: 10 });
 
 logger.info("BullMQ worker is running");
 

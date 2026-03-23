@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import ms from "ms";
 import type { SignOptions } from "jsonwebtoken";
 import AppError from "@/errors/AppError.js";
-import { blacklistToken, deleteKey, getValue, isTokenBlacklisted, setWithExpiry } from "@/lib/redis.js";
+import { blacklistToken, deleteKey, getValue, isTokenBlacklisted, setWithExpiry, isRedisReady } from "@/lib/redis.js";
 import { messageBus } from "@/messaging/messageBus.js";
 import { sendEmail } from "@/utils/sendEmail.js";
 import { createToken } from "@/utils/jwt.js";
@@ -275,21 +275,23 @@ const refreshAccessToken = async (refreshToken: string) => {
         throw AppError.of(StatusCodes.UNAUTHORIZED, "Malformed refresh token");
     }
 
-    const blacklisted = await isTokenBlacklisted(`refresh:${jti}`);
-    if (blacklisted) {
-        throw AppError.of(StatusCodes.UNAUTHORIZED, "Token has been revoked", [
-            { path: "refreshToken", message: "This refresh token has been revoked. Please login again." },
-        ]);
-    }
+    if (isRedisReady()) {
+        const blacklisted = await isTokenBlacklisted(`refresh:${jti}`);
+        if (blacklisted) {
+            throw AppError.of(StatusCodes.UNAUTHORIZED, "Token has been revoked", [
+                { path: "refreshToken", message: "This refresh token has been revoked. Please login again." },
+            ]);
+        }
 
-    const activeTokenId = await getValue(sessionKey(userId, tokenFamilyId));
+        const activeTokenId = await getValue(sessionKey(userId, tokenFamilyId));
 
-    if (!activeTokenId || activeTokenId !== jti) {
-        await deleteKey(sessionKey(userId, tokenFamilyId));
-        await publishAuthAudit("refresh_reuse_detected", { userId, tokenFamilyId });
-        throw AppError.of(StatusCodes.UNAUTHORIZED, "Refresh token reuse detected", [
-            { path: "refreshToken", message: "Session invalidated. Please login again." },
-        ]);
+        if (!activeTokenId || activeTokenId !== jti) {
+            await deleteKey(sessionKey(userId, tokenFamilyId));
+            await publishAuthAudit("refresh_reuse_detected", { userId, tokenFamilyId });
+            throw AppError.of(StatusCodes.UNAUTHORIZED, "Refresh token reuse detected", [
+                { path: "refreshToken", message: "Session invalidated. Please login again." },
+            ]);
+        }
     }
 
     const user = await User.findById(userId).lean();

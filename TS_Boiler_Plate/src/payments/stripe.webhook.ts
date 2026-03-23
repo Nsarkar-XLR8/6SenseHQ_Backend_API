@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import type Stripe from "stripe";
 import config from "../config/index.js";
 import { logger } from "../config/logger.js";
-import { setIfNotExists } from "../lib/redis.js";
+import { setIfNotExists, isRedisReady } from "../lib/redis.js";
 import { getStripe } from "./stripe.js";
 import { dispatchStripeEvent } from "./stripe.handlers.js";
 
@@ -15,6 +15,12 @@ export async function handleStripeWebhook(req: Request, res: Response): Promise<
     const stripe = getStripe();
     if (!stripe) {
         res.status(StatusCodes.SERVICE_UNAVAILABLE).json({ error: "Stripe not configured" });
+        return;
+    }
+
+    if (!isRedisReady()) {
+        logger.error("Redis is unavailable. Rejecting Stripe webhook to prevent idempotency bypass.");
+        res.status(StatusCodes.SERVICE_UNAVAILABLE).json({ error: "Temporarily unavailable" });
         return;
     }
 

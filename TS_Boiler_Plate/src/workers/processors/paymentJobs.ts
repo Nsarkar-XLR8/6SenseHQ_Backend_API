@@ -11,6 +11,12 @@ export async function processPaymentJob(
         case "subscription.updated":
             logger.info({ payload }, "Processing subscription update workflow");
             return;
+        case "subscription.deleted":
+            logger.info({ payload }, "Processing subscription deletion workflow");
+            return;
+        case "payment.checkout.completed":
+            logger.info({ payload }, "Processing checkout completed workflow");
+            return;
         case "invoice.payment_failed":
             logger.warn({ payload }, "Processing invoice payment failure workflow");
             return;
