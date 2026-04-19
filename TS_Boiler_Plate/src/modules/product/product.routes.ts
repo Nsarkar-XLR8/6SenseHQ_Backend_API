@@ -58,6 +58,7 @@ const router = Router();
  * /api/v1/product/create-product:
  *   post:
  *     summary: Create a newly structured product
+ *     operationId: createProduct
  *     description: Accepts multipart/form-data for file uploads, validates standard attributes, generates algorithmic productCode hash, and commits to MongoDB.
  *     tags: [Products]
  *     requestBody:
@@ -122,6 +123,8 @@ router.post(
  * /api/v1/product/update-product/{productId}:
  *   patch:
  *     summary: Extensively update an existing product
+ *     description: Modifies existing product parameters and optionally updates the Cloudinary image.
+ *     operationId: updateProduct
  *     tags: [Products]
  *     parameters:
  *       - in: path
@@ -170,6 +173,8 @@ router.patch(
  * /api/v1/product/get-all-products:
  *   get:
  *     summary: Extract heavily filtered products
+ *     description: Fetches a paginated and filtered list of products based on search term or category.
+ *     operationId: getAllProducts
  *     tags: [Products]
  *     parameters:
  *       - in: query
@@ -218,6 +223,8 @@ router.get(
  * /api/v1/product/get-single-product/{productId}:
  *   get:
  *     summary: Read exclusively single product parameters
+ *     description: Retrieves detailed attributes and category population for a single product ID.
+ *     operationId: getSingleProduct
  *     tags: [Products]
  *     parameters:
  *       - in: path
@@ -246,6 +253,7 @@ router.get(
  * /api/v1/product/delete-product/{productId}:
  *   delete:
  *     summary: Eradicate single products completely
+ *     operationId: deleteProduct
  *     description: Permanently obliterates Cloudinary CDN resources utilizing their secure API endpoints concurrently with flushing MongoDB traces.
  *     tags: [Products]
  *     parameters:

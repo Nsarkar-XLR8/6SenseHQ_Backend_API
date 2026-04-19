@@ -46,6 +46,8 @@ const router = express.Router();
  * /api/v1/category/create-category:
  *   post:
  *     summary: Create a new category
+ *     description: Registers a new category for product classification.
+ *     operationId: createCategory
  *     tags: [Category]
  *     requestBody:
  *       required: true
@@ -93,6 +95,8 @@ router.post(
  * /api/v1/category/get-all-categories:
  *   get:
  *     summary: Retrieve all categories
+ *     description: Fetches a paginated list of all active categories.
+ *     operationId: getAllCategories
  *     tags: [Category]
  *     parameters:
  *       - in: query
@@ -159,6 +163,8 @@ router.get('/get-all-categories', CategoryController.getAllCategories);
  * /api/v1/category/get-single-category/{categoryId}:
  *   get:
  *     summary: Retrieve a single category
+ *     description: Retrieves metadata for a specific category by its ID.
+ *     operationId: getSingleCategory
  *     tags: [Category]
  *     parameters:
  *       - in: path
@@ -191,6 +197,8 @@ router.get('/get-single-category/:categoryId', CategoryController.getSingleCateg
  * /api/v1/category/update-category/{categoryId}:
  *   patch:
  *     summary: Update a single category
+ *     description: Modifies existing category parameters.
+ *     operationId: updateCategory
  *     tags: [Category]
  *     parameters:
  *       - in: path
@@ -240,6 +248,8 @@ router.patch(
  * /api/v1/category/delete-category/{categoryId}:
  *   delete:
  *     summary: Delete a single category
+ *     description: Permanently removes a category from the system.
+ *     operationId: deleteCategory
  *     tags: [Category]
  *     parameters:
  *       - in: path
