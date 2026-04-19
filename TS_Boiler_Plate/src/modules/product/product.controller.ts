@@ -5,7 +5,7 @@ import { IProduct } from './product.interface.js';
 import catchAsync from '@/utils/catchAsync.js';
 import { sendResponse } from '@/utils/sendResponse.js';
 import { pick } from '@/utils/pick.js';
-import { buildPagination } from '@/utils/pagination.js';
+import { buildPagination, PaginationInput } from '@/utils/pagination.js';
 import { uploadToCloudinaryFromMulter } from '@/utils/cloudinary.js';
 import AppError from '@/errors/AppError.js';
 
@@ -55,10 +55,10 @@ const getAllProducts = catchAsync(async (req: Request, res: Response) => {
     const filters = pick(req.query as Record<string, string>, ['searchTerm', 'category']);
 
     // 2. Extract Pagination/Sorting Fields
-    const paginationInput = pick(req.query as any, ['page', 'limit', 'sortBy', 'sortOrder']);
+    const paginationInput = pick(req.query as Record<string, string>, ['page', 'limit', 'sortBy', 'sortOrder']);
 
     // 3. Transform to Strict Pagination Options
-    const paginationOptions = buildPagination(paginationInput, {
+    const paginationOptions = buildPagination(paginationInput as unknown as PaginationInput, {
         defaultSortBy: 'createdAt',
         defaultSortOrder: 'desc',
         allowedSortBy: ['name', 'price', 'createdAt', 'discount'],

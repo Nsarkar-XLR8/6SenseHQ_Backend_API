@@ -49,7 +49,7 @@ describe("Category Module Containerized Integration Tests", () => {
         expect(response.body.data).toBeInstanceOf(Array);
         expect(response.body.data.length).toBeGreaterThan(0);
         // Specifically look for the one we just created
-        const names = response.body.data.map((c: any) => c.name);
+        const names = response.body.data.map((c: { name: string }) => c.name);
         expect(names).toContain("Test Electronics");
     });
 

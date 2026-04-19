@@ -31,7 +31,7 @@ const getAllProductsFromDB = async (
     const { searchTerm, category } = filters;
     const { limit, page, skip, sort } = paginationOptions;
 
-    const query: Record<string, any> = {};
+    const query: Record<string, unknown> = {};
 
     // Search by Name (Partial match)
     if (searchTerm) {

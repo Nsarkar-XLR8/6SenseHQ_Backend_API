@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateProductCode } from '../../src/modules/product/product.utils.js';
+import { generateProductCode } from '../../../src/modules/product/product.utils.js';
 
 describe('Product Utils - generateProductCode', () => {
     it('should generate a code with correct prefix length', () => {

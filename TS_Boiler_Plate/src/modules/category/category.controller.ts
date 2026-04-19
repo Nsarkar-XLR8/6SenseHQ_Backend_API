@@ -5,7 +5,7 @@ import { CategoryService } from './category.service.js';
 import { sendResponse } from '@/utils/sendResponse.js';
 import { ICategory } from './category.interface.js';
 import { pick } from '@/utils/pick.js';
-import { buildPagination } from '@/utils/pagination.js';
+import { buildPagination, PaginationInput } from '@/utils/pagination.js';
 
 const createCategory = catchAsync(async (req: Request, res: Response) => {
   const result = await CategoryService.createCategoryIntoDB(req.validated?.body);
@@ -21,13 +21,13 @@ const createCategory = catchAsync(async (req: Request, res: Response) => {
 
 const getAllCategories = catchAsync(async (req: Request, res: Response) => {
   // 1. Extract Filter criteria
-  const filters = pick(req.query as any, ['searchTerm']);
+  const filters = pick(req.query as Record<string, string>, ['searchTerm']);
   
   // 2. Extract Pagination criteria
-  const paginationInput = pick(req.query as any, ['page', 'limit', 'sortBy', 'sortOrder']);
+  const paginationInput = pick(req.query as Record<string, string>, ['page', 'limit', 'sortBy', 'sortOrder']);
   
   // 3. Transform to strict PaginationResult
-  const paginationOptions = buildPagination(paginationInput, {
+  const paginationOptions = buildPagination(paginationInput as unknown as PaginationInput, {
     defaultSortBy: 'createdAt',
     defaultSortOrder: 'desc',
     allowedSortBy: ['name', 'createdAt'],

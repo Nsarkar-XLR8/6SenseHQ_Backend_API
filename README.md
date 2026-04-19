@@ -8,39 +8,43 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Express-5.2-black?logo=express&logoColor=white" alt="Express" />
-  <img src="https://img.shields.io/badge/MongoDB-Mongoose_9-green?logo=mongodb&logoColor=white" alt="MongoDB" />
-  <img src="https://img.shields.io/badge/Validation-Zod_4-purple" alt="Zod" />
-  <img src="https://img.shields.io/badge/Upload-Cloudinary-blue?logo=cloudinary" alt="Cloudinary" />
+  <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Express-5.2-000000?logo=express&logoColor=white" alt="Express" />
+  <img src="https://img.shields.io/badge/MongoDB-Mongoose_9-47A248?logo=mongodb&logoColor=white" alt="MongoDB" />
+  <img src="https://img.shields.io/badge/Validation-Zod_4-8B5CF6" alt="Zod" />
+  <img src="https://img.shields.io/badge/Upload-Cloudinary-3448C5?logo=cloudinary&logoColor=white" alt="Cloudinary" />
   <img src="https://img.shields.io/badge/Docs-Swagger_UI-85EA2D?logo=swagger&logoColor=black" alt="Swagger" />
+  <img src="https://img.shields.io/badge/Tests-Vitest-6E9F18?logo=vitest&logoColor=white" alt="Vitest" />
 </p>
 
 ---
 
 ## Table of Contents
 
-- [Project Overview](#project-overview)
-- [Tech Stack](#tech-stack)
-- [Core Features & Business Logic](#core-features--business-logic)
-- [Installation & Setup](#installation--setup)
-- [API Documentation (Swagger)](#api-documentation-swagger)
-- [API Endpoints](#api-endpoints)
-- [Testing Strategy](#testing-strategy)
-- [Database Design](#database-design)
-- [Project Structure](#project-structure)
-- [Error Handling](#error-handling)
+1. [Project Overview](#project-overview)
+2. [Tech Stack](#tech-stack)
+3. [Core Features & Business Logic](#core-features--business-logic)
+4. [Installation & Setup](#installation--setup)
+5. [API Documentation](#api-documentation)
+6. [API Endpoints](#api-endpoints)
+7. [Testing Strategy](#testing-strategy)
+8. [Database Design](#database-design)
+9. [Project Structure](#project-structure)
+10. [Error Handling](#error-handling)
 
 ---
 
 ## Project Overview
 
-This project is a backend service built for the **6SenseHQ Backend Developer Challenge**. It implements a complete Product & Category management system with emphasis on:
+This project is a backend service built for the **6SenseHQ Backend Developer Challenge**. It implements a complete **Product & Category management system** with an emphasis on correctness, scalability, and professional engineering practices.
 
-- **Algorithmic uniqueness** — Every product receives a deterministic, collision-resistant code generated from its name using MD5 hashing and substring analysis.
-- **Dynamic pricing** — Final prices are computed server-side as Mongoose virtuals, ensuring pricing logic never leaks to the client.
-- **Cloud-native media** — Product images are uploaded directly to Cloudinary via `multipart/form-data`, and cleaned up from the CDN upon deletion.
-- **Strict validation** — All request payloads pass through Zod schemas before reaching any business logic.
+**What makes it production-ready:**
+
+- **Algorithmic uniqueness** — Every product receives a deterministic, collision-resistant code generated from its name using MD5 hashing + alphabetical substring analysis.
+- **Dynamic pricing** — `finalPrice` is computed server-side as a Mongoose virtual, so it's always accurate and never stored stale.
+- **Cloud-native media** — Product images are uploaded to Cloudinary via `multipart/form-data` and atomically cleaned up from the CDN upon product deletion.
+- **Strict validation** — All payloads pass through Zod schemas before reaching any business logic.
+- **Hardened security** — Helmet, HPP, CORS, rate limiting, and MongoDB sanitization are applied globally.
 
 ---
 
@@ -48,15 +52,16 @@ This project is a backend service built for the **6SenseHQ Backend Developer Cha
 
 | Layer | Technology | Purpose |
 |---|---|---|
-| **Runtime** | Node.js + TypeScript 5.9 | Type-safe server-side JavaScript |
-| **Framework** | Express 5 | HTTP routing, middleware pipeline |
-| **Database** | MongoDB + Mongoose 9 | Document storage, schema validation, virtuals |
-| **Validation** | Zod 4 | Request body/query/params schema validation |
-| **File Upload** | Multer + Cloudinary | Multipart parsing → CDN upload pipeline |
-| **Documentation** | Swagger (OpenAPI 3.0) | Auto-generated interactive API docs |
-| **Security** | Helmet, HPP, CORS, Rate Limiting | Production-hardened HTTP security |
-| **Observability** | Pino Logger, Prometheus Metrics | Structured logging, `/metrics` endpoint |
-| **Testing** | Vitest + Supertest | Unit and integration test framework |
+| **Language** | TypeScript 5.9 | End-to-end type safety |
+| **Runtime** | Node.js ≥ 18 | Server-side JavaScript |
+| **Framework** | Express 5.2 | HTTP routing, middleware pipeline |
+| **Database** | MongoDB + Mongoose 9 | Document storage, schema virtuals, population |
+| **Validation** | Zod 4 | Request body / query / params schema validation |
+| **File Upload** | Multer + Cloudinary SDK | `multipart/form-data` → CDN streaming |
+| **Documentation** | Swagger UI (OpenAPI 3.0) | Auto-generated, interactive API docs |
+| **Security** | Helmet, HPP, CORS, Rate Limiter | Production-hardened HTTP headers & traffic control |
+| **Observability** | Pino Logger + Prometheus | Structured JSON logging, `/metrics` endpoint |
+| **Testing** | Vitest + Supertest | Unit tests and containerized integration tests |
 
 ---
 
@@ -64,17 +69,17 @@ This project is a backend service built for the **6SenseHQ Backend Developer Cha
 
 ### 1. Algorithmic Product Code Generation
 
-Every product is assigned a **unique, deterministic code** derived from its name. This is not a random UUID — it's an algorithmic fingerprint.
+Every product is assigned a **unique, deterministic code** derived from its name at creation time. This is not a random UUID — it's an algorithmic fingerprint that can be reproduced from the name alone.
 
-**How it works:**
+**5-step algorithm:**
 
 ```
 Input: "Wireless Headphones"
 
-Step 1 → Sanitize: "wirelessheadphones"
-Step 2 → MD5 Hash Prefix: crypto.md5("Wireless Headphones").hex[0..6] → "a7f3b21"
+Step 1 → Sanitize:    "wirelessheadphones"  (lowercase, no spaces)
+Step 2 → MD5 Prefix:  crypto.md5("Wireless Headphones").hex[0..6] → "a7f3b21"
 Step 3 → Extract all strictly increasing alphabetical substrings
-Step 4 → Select the longest ones, concatenate them
+Step 4 → Select the longest substring(s) and concatenate
 Step 5 → Format: <hash>-<startIndex><substring><endIndex>
 
 Output: "a7f3b21-3elssx14"
@@ -84,7 +89,7 @@ Output: "a7f3b21-3elssx14"
 
 ### 2. Dynamic Pricing via Mongoose Virtuals
 
-The `finalPrice` is **never stored in the database**. It is computed on every read operation as a Mongoose virtual:
+The `finalPrice` field is **never stored in the database**. It is recomputed on every read as a Mongoose virtual, ensuring pricing is always consistent with the current discount:
 
 ```typescript
 // product.model.ts
@@ -104,8 +109,8 @@ productSchema.virtual('finalPrice').get(function () {
 
 ### 3. Cloudinary CDN Integration
 
-- **Upload:** Product images are received as `multipart/form-data` via Multer, then streamed directly to Cloudinary. The returned `secure_url` is persisted in MongoDB.
-- **Deletion:** When a product is deleted, the API extracts the Cloudinary `public_id` from the stored URL and issues a destroy call to the CDN, preventing orphaned assets.
+- **Upload flow:** Image buffer from Multer is streamed directly to Cloudinary's upload API. The returned `secure_url` is persisted to MongoDB — no local disk I/O.
+- **Deletion cascade:** When a product is deleted, the API extracts the `public_id` from the Cloudinary URL and calls `uploader.destroy()`, preventing orphaned CDN assets.
 
 ---
 
@@ -114,99 +119,106 @@ productSchema.virtual('finalPrice').get(function () {
 ### Prerequisites
 
 - **Node.js** ≥ 18.x
-- **MongoDB** — Atlas connection string or local instance
+- **MongoDB** — [Atlas](https://cloud.mongodb.com/) (recommended) or local instance
 - **Cloudinary** account — [Sign up free](https://cloudinary.com/)
 
 ### Steps
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/6SenseHQ_Backend.git
-cd 6SenseHQ_Backend/TS_Boiler_Plate
+git clone https://github.com/Nsarkar-XLR8/6SenseHQ_Backend_API.git
+cd 6SenseHQ_Backend_API/TS_Boiler_Plate
 
 # 2. Install dependencies
 npm install
 
 # 3. Configure environment variables
 cp .env.example .env
-# Then edit .env with your actual credentials (see below)
+# Edit .env with your actual credentials (see below)
 
 # 4. Start the development server
 npm run dev
 ```
 
-The server will start at `http://localhost:5000`.
+The API will be live at: **`http://localhost:5000`**
 
-### Environment Variables
-
-Create a `.env` file in the project root with the following **required** keys:
+### Required Environment Variables
 
 ```env
-# ── Required ──────────────────────────────────────
+# ── Server ─────────────────────────────────────────
 NODE_ENV=development
 PORT=5000
 
-# MongoDB Connection
+# ── Database ───────────────────────────────────────
 MONGODB_URL=mongodb+srv://<user>:<password>@cluster.mongodb.net/<db_name>
 
-# JWT Configuration
+# ── JWT ────────────────────────────────────────────
 JWT_SECRET=your_super_secret_jwt_key_min_32_characters
 JWT_EXPIRES_IN=7d
 JWT_REFRESH_TOKEN_SECRET=your_super_secret_refresh_token_key_min_32_characters
 JWT_REFRESH_EXPIRES_IN=30d
 
-# Cloudinary CDN
+# ── Cloudinary ─────────────────────────────────────
 CLOUDINARY_ENABLED=true
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 ```
 
-> **Note:** See [`.env.example`](.env.example) for the full list of optional variables including Redis, Kafka, RabbitMQ, OAuth, and Stripe configurations.
+> See [`TS_Boiler_Plate/.env.example`](TS_Boiler_Plate/.env.example) for the full list of optional variables (Redis, Kafka, RabbitMQ, OAuth, Stripe).
 
 ### Available Scripts
 
 | Command | Description |
 |---|---|
-| `npm run dev` | Start development server with hot reload |
-| `npm run build` | Compile TypeScript to `dist/` |
+| `npm run dev` | Start dev server with hot reload |
+| `npm run build` | Compile TypeScript → `dist/` |
 | `npm start` | Run compiled production build |
-| `npm test` | Run all unit and integration tests |
+| `npm test` | Run unit + health integration tests |
+| `npm run test:integration:containers` | Run Docker-based integration tests |
 | `npm run typecheck` | Validate TypeScript without emitting |
 | `npm run lint` | Run ESLint across the codebase |
+| `npm run check:all` | Full CI suite: typecheck + lint + test + contracts + security |
 
 ---
 
-## API Documentation (Swagger)
+## API Documentation
 
-Interactive API documentation is auto-generated from JSDoc annotations using **Swagger UI**.
+### 🔵 Swagger UI — Interactive Docs
 
-Once the server is running, open your browser and navigate to:
+Full interactive API documentation is auto-generated from JSDoc/Swagger annotations.
 
-```
-http://localhost:5000/api-docs
-```
+> **Locally:** Start the server then open → [`http://localhost:5000/api-docs`](http://localhost:5000/api-docs)
+>
+> Raw OpenAPI 3.0 spec: [`http://localhost:5000/api-docs.json`](http://localhost:5000/api-docs.json)
+>
+> ℹ️ Swagger UI is enabled in `development` mode and auto-disabled in `production`.
 
-You can also access the raw OpenAPI 3.0 JSON spec at:
+---
 
-```
-http://localhost:5000/api-docs.json
-```
+### 🟠 Postman Collection — Pre-tested Requests
 
-> Swagger UI is automatically enabled in `development` mode and disabled in `production`.
+A complete Postman collection with **pre-written test scripts** for every route is available publicly:
+
+**👉 [View & Import the Postman Collection](https://documenter.getpostman.com/view/50920410/2sBXqDt3y3)**
+
+The collection includes:
+- Pre-configured requests for all Category and Product endpoints
+- Automatic test assertions on status codes, response shapes, and business logic
+- Environment variables for easy base URL switching
 
 ---
 
 ## API Endpoints
 
-All endpoints are prefixed with `/api/v1`.
+All endpoints are prefixed with **`/api/v1`**.
 
 ### Category Endpoints
 
 | Method | Endpoint | Description |
 |---|---|---|
 | `POST` | `/category/create-category` | Create a new category |
-| `GET` | `/category/get-all-categories` | Get all categories (paginated, searchable) |
+| `GET` | `/category/get-all-categories` | Get all categories (paginated + searchable) |
 | `GET` | `/category/get-single-category/:categoryId` | Get a single category by ID |
 | `PATCH` | `/category/update-category/:categoryId` | Update category fields |
 | `DELETE` | `/category/delete-category/:categoryId` | Delete a category |
@@ -224,10 +236,10 @@ All endpoints are prefixed with `/api/v1`.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `searchTerm` | string | — | Regex search on `name` field |
-| `page` | number | 1 | Page number |
-| `limit` | number | 10 | Items per page |
-| `sortBy` | string | `createdAt` | Sort field (`name`, `createdAt`) |
+| `searchTerm` | string | — | Regex search across `name` |
+| `page` | number | `1` | Page number |
+| `limit` | number | `10` | Items per page |
+| `sortBy` | string | `createdAt` | Field to sort by (`name`, `createdAt`) |
 | `sortOrder` | string | `desc` | `asc` or `desc` |
 
 ---
@@ -237,10 +249,10 @@ All endpoints are prefixed with `/api/v1`.
 | Method | Endpoint | Description |
 |---|---|---|
 | `POST` | `/product/create-product` | Create product (`multipart/form-data`) |
-| `GET` | `/product/get-all-products` | Get all products (filtered, paginated) |
-| `GET` | `/product/get-single-product/:productId` | Get single product with populated category |
+| `GET` | `/product/get-all-products` | List products (filtered + paginated) |
+| `GET` | `/product/get-single-product/:productId` | Get single product (category populated) |
 | `PATCH` | `/product/update-product/:productId` | Update product (`multipart/form-data`) |
-| `DELETE` | `/product/delete-product/:productId` | Delete product + Cloudinary cleanup |
+| `DELETE` | `/product/delete-product/:productId` | Delete product + purge Cloudinary asset |
 
 #### Create Product — Form Data Fields
 
@@ -248,11 +260,11 @@ All endpoints are prefixed with `/api/v1`.
 |---|---|---|---|
 | `name` | string | ✅ | Product name |
 | `description` | string | ✅ | Product description |
-| `price` | number | ✅ | Original price |
-| `discount` | number | ❌ | Discount percentage (default: 0) |
-| `image` | file | ✅ | Product image (uploaded to Cloudinary) |
+| `price` | number | ✅ | Original listing price |
+| `discount` | number | ❌ | Discount percentage (default: `0`) |
+| `image` | file | ✅ | Product image — uploaded to Cloudinary |
 | `status` | string | ❌ | `"in stock"` or `"stock out"` (default: `"in stock"`) |
-| `category` | string | ✅ | Valid Category ObjectId |
+| `category` | string | ✅ | Valid Category `_id` (ObjectId) |
 
 #### Get All Products — Query Parameters
 
@@ -260,9 +272,9 @@ All endpoints are prefixed with `/api/v1`.
 |---|---|---|---|
 | `searchTerm` | string | — | Regex search on `name` |
 | `category` | string | — | Filter by Category ObjectId |
-| `page` | number | 1 | Page number |
-| `limit` | number | 10 | Items per page |
-| `sortBy` | string | `createdAt` | Sort field (`name`, `price`, `discount`, `createdAt`) |
+| `page` | number | `1` | Page number |
+| `limit` | number | `10` | Items per page |
+| `sortBy` | string | `createdAt` | `name`, `price`, `discount`, or `createdAt` |
 | `sortOrder` | string | `desc` | `asc` or `desc` |
 
 #### Sample Response — Single Product
@@ -273,17 +285,17 @@ All endpoints are prefixed with `/api/v1`.
   "statusCode": 200,
   "message": "Product retrieved successfully",
   "data": {
-    "_id": "6632f1a...",
+    "_id": "6632f1a9b4c2e8d1a0f3b456",
     "name": "Wireless Headphones",
     "description": "Premium noise-cancelling headphones",
     "price": 1200,
     "discount": 15,
     "finalPrice": 1020,
     "productCode": "a7f3b21-3elssx14",
-    "image": "https://res.cloudinary.com/your-cloud/image/upload/v17.../products/abc123.jpg",
+    "image": "https://res.cloudinary.com/your-cloud/image/upload/v1/products/abc123.jpg",
     "status": "in stock",
     "category": {
-      "_id": "6632e9b...",
+      "_id": "6632e9b7c1d4a8f0b2e1c789",
       "name": "Electronics",
       "description": "Gadgets and devices"
     },
@@ -297,130 +309,146 @@ All endpoints are prefixed with `/api/v1`.
 
 ## Testing Strategy
 
-Testing is split into two approaches to maximize both speed and confidence:
+Testing is structured in two layers to balance speed and confidence:
 
-### Postman Collection (Manual API Testing)
+### Layer 1 — Postman Collection (Manual API Verification)
 
-A **Postman Collection** with pre-written test scripts is provided for every route. Each request includes assertions that validate:
+**👉 [Open Postman Collection](https://documenter.getpostman.com/view/50920410/2sBXqDt3y3)**
 
-- ✅ Status codes (`201 Created`, `200 OK`, `404 Not Found`, `400 Bad Request`)
-- ✅ Response structure integrity (`success`, `statusCode`, `message`, `data`)
-- ✅ Business logic correctness (e.g., `productCode` is present, `finalPrice` matches calculation)
-- ✅ Cascade behavior (deleting a product triggers Cloudinary cleanup)
+Pre-written test scripts cover every route and assert:
 
-**How to use:**
-1. Import the Postman collection into your Postman workspace
-2. Set your `base_url` environment variable to `http://localhost:5000/api/v1`
-3. Run the collection in order: **Create Category → Create Product → Get/Update/Delete cycles**
+- ✅ Correct HTTP status codes (`201`, `200`, `400`, `404`)
+- ✅ Response envelope shape (`success`, `statusCode`, `message`, `data`)
+- ✅ Business logic — `productCode` is generated, `finalPrice` matches formula
+- ✅ Referential integrity — creating a product with an invalid `category` returns `404`
+- ✅ Cascade deletion — product removal triggers Cloudinary CDN cleanup
 
-### Automated Tests (Vitest + Supertest)
+**Run order:** Create Category → Create Product → Read → Update → Delete
+
+---
+
+### Layer 2 — Automated Tests (Vitest + Supertest)
 
 ```bash
-# Run all unit and integration tests
+# Unit + health integration tests (runs in CI — no Docker required)
 npm test
 
-# Run containerized tests (requires Docker)
+# Containerized integration tests (requires Docker)
 npm run test:integration:containers
 ```
 
-| Test Suite | Location | What It Covers |
+| Suite | File | Coverage |
 |---|---|---|
-| Health Check Tests | `tests/integration/health.test.ts` | Server boot, health, readiness probes |
-| Category Integration | `tests/integration/category.containerized.test.ts` | Full CRUD lifecycle against real MongoDB |
-| Product Integration | `tests/integration/product.containerized.test.ts` | CRUD + Cloudinary mocking + referential integrity |
+| Health Checks | `tests/integration/health.test.ts` | Server boot, `/health`, `/ready`, `/metrics` endpoints |
+| Category Integration | `tests/integration/category.containerized.test.ts` | Full CRUD lifecycle against real MongoDB container |
+| Product Integration | `tests/integration/product.containerized.test.ts` | CRUD + Cloudinary mock + referential integrity |
 | Product Utils Unit | `tests/unit/utils/productUtils.test.ts` | `generateProductCode()` algorithm correctness |
 
 ---
 
 ## Database Design
 
-The system uses two MongoDB collections with a **one-to-many** relationship — one Category can contain many Products.
+The system uses two MongoDB collections connected by a **one-to-many relationship** — one Category can contain many Products.
 
 ![Database Schema](assets/database-schema.png)
 
 ```mermaid
 erDiagram
     CATEGORY ||--o{ PRODUCT : contains
+
     CATEGORY {
         ObjectId _id PK
-        String name "Required, Unique"
-        String description "Required"
-        Date createdAt
-        Date updatedAt
+        String   name        "Required, Unique"
+        String   description "Optional"
+        Date     createdAt
+        Date     updatedAt
     }
+
     PRODUCT {
-        ObjectId _id PK
-        String name "Required"
-        String description "Required"
-        Number price "Required"
-        Number discount "Default: 0"
-        Number finalPrice "Virtual: price - discount%"
-        String productCode "Generated: MD5 + substring"
-        String image "Cloudinary secure_url"
-        Enum status "in stock | stock out"
-        ObjectId category FK "References Category"
-        Date createdAt
-        Date updatedAt
+        ObjectId _id         PK
+        String   name        "Required"
+        String   description "Required"
+        Number   price       "Required"
+        Number   discount    "Default: 0"
+        Number   finalPrice  "Virtual: price − discount%"
+        String   productCode "Generated: MD5 + substring algo"
+        String   image       "Cloudinary secure_url"
+        Enum     status      "in stock | stock out"
+        ObjectId category    FK "References Category"
+        Date     createdAt
+        Date     updatedAt
     }
 ```
 
-**Key Design Decisions:**
+**Key design decisions:**
 
-- `finalPrice` is a **Mongoose virtual** — computed on read, never stored. This ensures pricing integrity and eliminates stale discount data.
-- `productCode` is generated server-side using a **deterministic algorithm**, not a random UUID. The same product name always produces the same code prefix.
-- `category` uses Mongoose `ref` for **population** — the `GET /product/:id` endpoint returns the full category object, not just an ID.
+| Decision | Reason |
+|---|---|
+| `finalPrice` is a Mongoose virtual | Pricing is always live — no risk of stale discount data |
+| `productCode` is algorithm-derived | Deterministic & auditable — same name always yields same code prefix |
+| `category` uses `ref` + `.populate()` | `GET /product/:id` returns the full category object, not just an ID |
+| Product images deleted on cascade | Prevents orphaned CDN assets — `public_id` is extracted from the URL |
 
 ---
 
 ## Project Structure
 
 ```
-src/
-├── config/             # Environment, logger, Swagger configuration
-├── database/           # MongoDB connection + seed scripts
-├── errors/             # Custom AppError class with factory methods
-├── middlewares/         # Auth, validation, rate limiting, multer, error handler
-├── modules/
-│   ├── category/       # Category module (MVC)
-│   │   ├── category.interface.ts
-│   │   ├── category.model.ts
-│   │   ├── category.validation.ts
-│   │   ├── category.service.ts
-│   │   ├── category.controller.ts
-│   │   └── category.routes.ts
-│   └── product/        # Product module (MVC)
-│       ├── product.interface.ts
-│       ├── product.model.ts
-│       ├── product.validation.ts
-│       ├── product.service.ts
-│       ├── product.controller.ts
-│       ├── product.routes.ts
-│       └── product.utils.ts    ← Product Code Algorithm
-├── routes/             # Route aggregator
-├── utils/              # Shared utilities (pagination, response, Cloudinary)
-├── app.ts              # Express app factory
-└── server.ts           # Entry point — DB connect, server start
-
-tests/
-├── integration/        # API-level tests with supertest
-├── unit/               # Isolated unit tests
-└── helpers/            # Test utilities (container setup)
+6SenseHQ_Backend_API/
+└── TS_Boiler_Plate/
+    ├── src/
+    │   ├── config/                  # Env, logger, Swagger config
+    │   ├── database/                # MongoDB connection + seeds
+    │   ├── errors/                  # AppError class with factory methods
+    │   ├── middlewares/             # Auth, validation, rate limiter, multer, error handler
+    │   ├── modules/
+    │   │   ├── category/            # Category module (MVC)
+    │   │   │   ├── category.interface.ts
+    │   │   │   ├── category.model.ts
+    │   │   │   ├── category.validation.ts
+    │   │   │   ├── category.service.ts
+    │   │   │   ├── category.controller.ts
+    │   │   │   └── category.routes.ts
+    │   │   └── product/             # Product module (MVC)
+    │   │       ├── product.interface.ts
+    │   │       ├── product.model.ts
+    │   │       ├── product.validation.ts
+    │   │       ├── product.service.ts
+    │   │       ├── product.controller.ts
+    │   │       ├── product.routes.ts
+    │   │       └── product.utils.ts  ← Code generation algorithm
+    │   ├── routes/                  # Route aggregator
+    │   ├── utils/                   # Pagination, sendResponse, Cloudinary, pick
+    │   ├── app.ts                   # Express app factory
+    │   └── server.ts                # Entry point: connect DB → start server
+    ├── tests/
+    │   ├── integration/             # Supertest API tests
+    │   ├── unit/                    # Isolated unit tests
+    │   └── helpers/                 # Testcontainers setup
+    ├── assets/
+    │   └── database-schema.png      # ER diagram
+    ├── .env.example                 # Environment variable template
+    ├── vitest.config.ts             # Standard test config
+    ├── vitest.containerized.config.ts  # Docker integration test config
+    └── package.json
 ```
 
-Each module follows a strict **Interface → Model → Validation → Service → Controller → Route** pattern to maintain separation of concerns.
+Each module follows the strict pattern:
+**Interface → Model → Validation → Service → Controller → Route**
 
 ---
 
 ## Error Handling
 
-All errors flow through a centralized `globalErrorHandler` middleware. The API uses a custom `AppError` class with static factory methods:
+All errors are centralized through a `globalErrorHandler` middleware. The custom `AppError` class provides factory methods:
 
 ```typescript
-AppError.badRequest("Invalid input", [{ path: "name", message: "Name is required" }]);
+AppError.badRequest("Invalid input", [{ path: "image", message: "Image is required" }]);
 AppError.notFound("Product not found.");
+AppError.of(502, "Cloudinary upload failed");
 ```
 
-Every error response follows a consistent shape:
+Every error response is a consistent envelope:
 
 ```json
 {
@@ -433,10 +461,14 @@ Every error response follows a consistent shape:
 }
 ```
 
-Zod validation errors are automatically mapped to this format with field-level detail.
+Zod validation errors are automatically mapped to this format with field-level path detail.
 
 ---
 
 <p align="center">
-  Built with intent for the <strong>6SenseHQ Backend Challenge</strong>.
+  Built with intent for the <strong>6SenseHQ Backend Developer Challenge</strong>
+  <br/>
+  <a href="https://documenter.getpostman.com/view/50920410/2sBXqDt3y3">📮 Postman Collection</a> &nbsp;|&nbsp;
+  <a href="http://localhost:5000/api-docs">📄 Swagger Docs (local)</a> &nbsp;|&nbsp;
+  <a href="https://github.com/Nsarkar-XLR8/6SenseHQ_Backend_API">💻 GitHub Repository</a>
 </p>
