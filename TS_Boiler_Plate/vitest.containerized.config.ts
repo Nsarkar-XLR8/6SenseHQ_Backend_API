@@ -5,15 +5,12 @@ export default defineConfig({
     test: {
         globals: true,
         environment: 'node',
-        // 1. Remove the exclusion for containerized tests
-        // 2. Increase timeouts because Docker containers take time to spin up
-        testTimeout: 90000, 
-        hookTimeout: 90000,
+        include: ['**/*containerized.test.ts'],
         exclude: [
             '**/node_modules/**',
             '**/dist/**',
-            // Remove '**/containerized.test.*' from here
         ],
+        hookTimeout: 300_000, // Increase hook timeout for pulling docker images
     },
     resolve: {
         alias: {

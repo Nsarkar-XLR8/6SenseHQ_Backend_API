@@ -7,12 +7,12 @@ export const openapiSpec = swaggerJSDoc({
     definition: {
         openapi: "3.0.0",
         info: {
-            title: process.env.APP_NAME ?? "TS Boilerplate API",
+            title: process.env.APP_NAME ?? "6Sense HQ Backend Challenge API",
             version: process.env.APP_VERSION ?? "1.0.0",
             description: "API documentation",
             contact: {
                 name: "API Support",
-                email: "support@example.com"
+                email: "[EMAIL_ADDRESS]"
             }
         },
         servers: [

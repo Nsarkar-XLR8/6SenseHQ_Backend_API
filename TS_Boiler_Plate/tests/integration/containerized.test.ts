@@ -24,11 +24,13 @@ describe("Containerized Integration Tests", () => {
 
         // Connect ioredis to the container
         redis = new Redis(uris.redisUri);
-    }, 120_000); // 2-minute timeout for container startup
+    }, 300_000); // 5-minute timeout for container startup
 
     afterAll(async () => {
         await mongoose.disconnect();
-        redis.disconnect();
+        if (redis) {
+            redis.disconnect();
+        }
         await stopContainers();
     }, 30_000);
 

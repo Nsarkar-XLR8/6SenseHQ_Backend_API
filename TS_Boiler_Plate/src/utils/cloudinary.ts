@@ -45,7 +45,8 @@ export async function uploadToCloudinaryFromMulter(
 ): Promise<CloudinaryUploadResult> {
     try {
         return await uploadBuffer(file.buffer, { folder, resource_type: "auto" });
-    } catch {
+    } catch (error: any) {
+        console.log("Cloudinary Stream Error:", error);
         throw AppError.of(StatusCodes.BAD_GATEWAY, "Failed to upload file to Cloudinary", [
             { path: file.fieldname, message: "Cloudinary upload failed" }
         ]);

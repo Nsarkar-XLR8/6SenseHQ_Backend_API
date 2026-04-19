@@ -27,9 +27,9 @@ const envSchema = z.object({
     RESET_PASSWORD_TOKEN_SECRET: z.string().optional(),
     RESET_EXPIRES_IN: z.string().optional(),
 
-    CLOUDINARY_CLOUD_NAME: z.string().optional(),
-    CLOUDINARY_API_KEY: z.string().optional(),
-    CLOUDINARY_API_SECRET: z.string().optional(),
+    CLOUDINARY_CLOUD_NAME: z.string().trim().optional(),
+    CLOUDINARY_API_KEY: z.string().trim().optional(),
+    CLOUDINARY_API_SECRET: z.string().trim().optional(),
 
     AES_KEY: z.string().optional(),
     AES_IV: z.string().optional(),

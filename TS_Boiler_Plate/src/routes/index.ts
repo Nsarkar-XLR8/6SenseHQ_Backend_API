@@ -11,6 +11,8 @@ const router = Router();
 
 import { passportRouter } from '../auth/passport.route.js';
 import { stripeWebhookRouter } from '../payments/stripe.route.js';
+import { CategoryRoutes } from '@/modules/category/category.routes.js';
+import { ProductRoutes } from '@/modules/product/product.routes.js';
 
 const moduleRoutes = [
     {
@@ -42,6 +44,14 @@ const moduleRoutes = [
         // Stripe webhook route needs raw body parser
         path: '/webhooks',
         route: stripeWebhookRouter
+    },
+    {
+        path: '/category',
+        route: CategoryRoutes
+    },
+    {
+        path: '/product',
+        route: ProductRoutes
     }
 ];
 
