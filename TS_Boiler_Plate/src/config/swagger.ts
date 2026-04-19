@@ -12,7 +12,7 @@ export const openapiSpec = swaggerJSDoc({
             description: "API documentation",
             contact: {
                 name: "API Support",
-                email: "[EMAIL_ADDRESS]"
+                email: "nsarkar6251@gmail.com"
             }
         },
         servers: [
